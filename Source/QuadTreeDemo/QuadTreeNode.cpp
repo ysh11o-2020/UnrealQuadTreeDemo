@@ -39,7 +39,7 @@ void QuadTreeNode::InsertObject(AQuadTreeTargetObject* InObject)
 	int32 CurObjNum = ContainObjects.Num() + 1;
 	ContainObjects.Add(InObject);
 	
-	if (CurObjNum >= MaxContainNumber)
+	if (CurObjNum > MaxContainNumber)
 	{
 		if (bIsLeaf)
 		{
@@ -87,6 +87,10 @@ void QuadTreeNode::DrawBoundingBox(const UObject* WorldContextObject) const
 	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
 	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y-Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
 	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X+Size.X/2,Position.Y-Size.Y/2,DrawHeight),FVector(Position.X-Size.X/2,Position.Y-Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
+
+	FString DebugStr = FString::Printf(TEXT(" %d "),ContainObjects.Num());
+	DrawDebugString(WorldContextObject->GetWorld(),FVector(Position.X,Position.Y,0),DebugStr,nullptr,DrawColor,200,false,1);
+
 }
 
 void QuadTreeNode::DrawSelfAndChildrenBBox(const UObject* WorldContextObject) const
