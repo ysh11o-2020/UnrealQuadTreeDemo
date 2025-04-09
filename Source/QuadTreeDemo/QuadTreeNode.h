@@ -32,8 +32,12 @@ public:
 	bool IsContainedObject(const AQuadTreeTargetObject* InObject) const;
 
 	void InsertObject(AQuadTreeTargetObject* InObject);
-
-	void DrawBoundingBox(const UObject* WorldContextObject) const;
+	
+	void DrawBoundingBox(const UObject* WorldContextObject,const FColor DrawColor = FColor::Green) const;
 
 	void DrawSelfAndChildrenBBox(const UObject* WorldContextObject) const;
+	
+	//是否与圆形区域相交(AABB算法)
+	bool IsCircleInterSection(const FVector& CircleCenter, float Radius) const;
 };
+

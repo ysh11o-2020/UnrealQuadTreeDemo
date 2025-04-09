@@ -2,10 +2,13 @@
 
 
 #include "QuadTreeGameModeBase.h"
+#include "QuadTreePlayerController.h"
 
 AQuadTreeGameModeBase::AQuadTreeGameModeBase()
 {
 	TargetObjects.Empty();
+
+	PlayerControllerClass = AQuadTreePlayerController::StaticClass();
 }
 
 void AQuadTreeGameModeBase::BeginPlay()
@@ -27,7 +30,15 @@ void AQuadTreeGameModeBase::BeginPlay()
 					SpawnLocation.X,SpawnLocation.Y,SpawnLocation.Z);
 		}
 	}
-	UpdateQuadTree();
+	CreateQuadTree();
+	RootNode->DrawSelfAndChildrenBBox(this);
+
+	for (AQuadTreeTargetObject* QuadTreeTarget : TargetObjects)
+	{
+		QuadTreeNode* TempNode = GetContainerQuadTreeNode(QuadTreeTarget);
+		//UE_LOG(LogTemp,Warning,TEXT("* %s contain [%f,%f]*"),*QuadTreeTarget->GetName(),TempNode->Position.X,TempNode->Position.Y);
+		TempNode->DrawBoundingBox(this,FColor::Orange);
+	}
 }
 
 QuadTreeNode* AQuadTreeGameModeBase::GetRootNode() const
@@ -35,7 +46,7 @@ QuadTreeNode* AQuadTreeGameModeBase::GetRootNode() const
 	return RootNode;
 }
 
-void AQuadTreeGameModeBase::UpdateQuadTree()
+void AQuadTreeGameModeBase::CreateQuadTree()
 {
 	if (RootNode == nullptr)
 	{
@@ -52,7 +63,31 @@ void AQuadTreeGameModeBase::UpdateQuadTree()
 			RootNode->InsertObject(QuadTreeTarget);
 		}
 	}
+}
+
+void AQuadTreeGameModeBase::UpdateQuadTree()
+{
 	
-	RootNode->DrawSelfAndChildrenBBox(this);
+}
+
+QuadTreeNode* AQuadTreeGameModeBase::GetContainerQuadTreeNode(AQuadTreeTargetObject* TreeTargetObject) const
+{
+	QuadTreeNode* SearchNode = RootNode;
+	while (SearchNode != nullptr && !SearchNode->bIsLeaf)
+	{
+		if (!RootNode->IsContainedObject(TreeTargetObject)) return nullptr;
+		else
+		{
+			for (QuadTreeNode* ChildNode:SearchNode->Children)
+			{
+				if (ChildNode->IsContainedObject(TreeTargetObject))
+				{
+					SearchNode = ChildNode;
+					break;
+				}
+			}
+		}
+	}
+	return SearchNode;
 }
 

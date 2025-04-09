@@ -36,5 +36,8 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TArray<AQuadTreeTargetObject*> TargetObjects;
 
+	void CreateQuadTree();
 	void UpdateQuadTree();
+	
+	QuadTreeNode* GetContainerQuadTreeNode(AQuadTreeTargetObject* TreeTargetObject) const;
 };

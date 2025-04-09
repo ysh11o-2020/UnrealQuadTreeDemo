@@ -18,6 +18,8 @@ QuadTreeNode::QuadTreeNode(const FVector2D& InPosition, const FVector2D& InSize,
 
 QuadTreeNode::~QuadTreeNode()
 {
+	Children.Empty();
+	ContainObjects.Empty();
 }
 
 bool QuadTreeNode::IsContainedObject(const AQuadTreeTargetObject* InObject) const
@@ -27,8 +29,9 @@ bool QuadTreeNode::IsContainedObject(const AQuadTreeTargetObject* InObject) cons
 	const float MaxX = Position.X + Size.X/2.0f;
 	const float MaxY = Position.Y + Size.Y/2.0f;
 	const float MinX = Position.X - Size.X/2.0f;
-
-	if (float MinY = Position.Y - Size.Y/2.0f; InObject->GetActorLocation().X > MinX && InObject->GetActorLocation().X < MaxX && InObject->GetActorLocation().Y > MinY && InObject->GetActorLocation().Y < MaxY)
+	const float MinY = Position.Y - Size.Y/2.0f;
+	
+	if ( InObject->GetActorLocation().X > MinX && InObject->GetActorLocation().X < MaxX && InObject->GetActorLocation().Y > MinY && InObject->GetActorLocation().Y < MaxY)
 		return true;
 	
 	return false;
@@ -76,20 +79,20 @@ void QuadTreeNode::InsertObject(AQuadTreeTargetObject* InObject)
 	}
 }
 
-void QuadTreeNode::DrawBoundingBox(const UObject* WorldContextObject) const
+void QuadTreeNode::DrawBoundingBox(const UObject* WorldContextObject, const FColor DrawColor) const
 {
 	if (WorldContextObject == nullptr) return;
-
-	FColor DrawColor = FColor::Green;
-	float DrawHeight = 55.0f;
 	
-	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y-Size.Y/2,DrawHeight),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
-	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
-	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y-Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
-	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X+Size.X/2,Position.Y-Size.Y/2,DrawHeight),FVector(Position.X-Size.X/2,Position.Y-Size.Y/2,DrawHeight),DrawColor,true,200,0,5);
+	float DrawHeight = 55.0f;
+	float DrawTime = 555/*/UKismetSystemLibrary::GetFrameCount()*/;
+	
+	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y-Size.Y/2,DrawHeight),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,false,DrawTime,0,5);
+	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,false,DrawTime,0,5);
+	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y-Size.Y/2,DrawHeight),DrawColor,false,DrawTime,0,5);
+	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X+Size.X/2,Position.Y-Size.Y/2,DrawHeight),FVector(Position.X-Size.X/2,Position.Y-Size.Y/2,DrawHeight),DrawColor,false,DrawTime,0,5);
 
 	FString DebugStr = FString::Printf(TEXT(" %d "),ContainObjects.Num());
-	DrawDebugString(WorldContextObject->GetWorld(),FVector(Position.X,Position.Y,0),DebugStr,nullptr,DrawColor,200,false,1);
+	DrawDebugString(WorldContextObject->GetWorld(),FVector(Position.X,Position.Y,0),DebugStr,nullptr,DrawColor,DrawTime,false,1);
 
 }
 
@@ -108,4 +111,17 @@ void QuadTreeNode::DrawSelfAndChildrenBBox(const UObject* WorldContextObject) co
 			ChildNode->DrawSelfAndChildrenBBox(WorldContextObject);
 		}
 	}
+}
+
+bool QuadTreeNode::IsCircleInterSection(const FVector& CircleCenter, float Radius) const
+{
+	const float MaxX = Position.X + Size.X/2.0f;
+	const float MaxY = Position.Y + Size.Y/2.0f;
+	const float MinX = Position.X - Size.X/2.0f;
+	const float MinY = Position.Y - Size.Y/2.0f;
+
+	float ClosestX = FMath::Clamp(CircleCenter.X,MinX,MaxX);
+	float ClosestY = FMath::Clamp(CircleCenter.Y,MinY,MaxY);
+	
+	return (ClosestX - CircleCenter.X) * (ClosestX - CircleCenter.X) + (ClosestY - CircleCenter.Y) * (ClosestY - CircleCenter.Y) <= Radius * Radius;
 }
