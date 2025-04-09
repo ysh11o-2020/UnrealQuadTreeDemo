@@ -7,14 +7,13 @@
 AQuadTreeGameModeBase::AQuadTreeGameModeBase()
 {
 	TargetObjects.Empty();
-
 	PlayerControllerClass = AQuadTreePlayerController::StaticClass();
 }
 
 void AQuadTreeGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	check(QuadTreeTargetObjectClass);
 	
 	for (int32 i=0;i<MaxSpawnNum;i++)
@@ -31,19 +30,16 @@ void AQuadTreeGameModeBase::BeginPlay()
 		}
 	}
 	CreateQuadTree();
-	RootNode->DrawSelfAndChildrenBBox(this);
+	// RootNode->DrawSelfAndChildrenBBox(this);
 
-	for (AQuadTreeTargetObject* QuadTreeTarget : TargetObjects)
-	{
-		QuadTreeNode* TempNode = GetContainerQuadTreeNode(QuadTreeTarget);
-		//UE_LOG(LogTemp,Warning,TEXT("* %s contain [%f,%f]*"),*QuadTreeTarget->GetName(),TempNode->Position.X,TempNode->Position.Y);
-		TempNode->DrawBoundingBox(this,FColor::Orange);
-	}
-}
+	// for (AQuadTreeTargetObject* QuadTreeTarget : TargetObjects)
+	// {
+	// 	TSharedPtr<QuadTreeNode> TempNode = GetContainerQuadTreeNode(QuadTreeTarget);
+	// 	//UE_LOG(LogTemp,Warning,TEXT("* %s contain [%f,%f]*"),*QuadTreeTarget->GetName(),TempNode->Position.X,TempNode->Position.Y);
+	// 	TempNode->DrawBoundingBox(this,FColor::Orange);
+	// }
 
-QuadTreeNode* AQuadTreeGameModeBase::GetRootNode() const
-{
-	return RootNode;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_UpdateQuadTree,this,&AQuadTreeGameModeBase::UpdateQuadTree,0.1f,true,0);
 }
 
 void AQuadTreeGameModeBase::CreateQuadTree()
@@ -52,7 +48,7 @@ void AQuadTreeGameModeBase::CreateQuadTree()
 	{
 		FVector2D RootPosition = (BoundingBox.Min + BoundingBox.Max)/2;
 		FVector2D RootSize = BoundingBox.Max - BoundingBox.Min;
-		RootNode = new QuadTreeNode(RootPosition,RootSize);
+		RootNode = MakeShared<QuadTreeNode>(RootPosition,RootSize);
 	}
 	RootNode->bIsRoot = true;
 	
@@ -67,18 +63,21 @@ void AQuadTreeGameModeBase::CreateQuadTree()
 
 void AQuadTreeGameModeBase::UpdateQuadTree()
 {
-	
+	RootNode->Children.Empty();
+	RootNode = nullptr;
+	CreateQuadTree();
+	RootNode->DrawSelfAndChildrenBBox(this,FColor::Purple,0.1f);
 }
 
-QuadTreeNode* AQuadTreeGameModeBase::GetContainerQuadTreeNode(AQuadTreeTargetObject* TreeTargetObject) const
+TSharedPtr<QuadTreeNode> AQuadTreeGameModeBase::GetContainerQuadTreeNode(const AQuadTreeTargetObject* TreeTargetObject) const
 {
-	QuadTreeNode* SearchNode = RootNode;
+	TSharedPtr<QuadTreeNode> SearchNode = RootNode;
 	while (SearchNode != nullptr && !SearchNode->bIsLeaf)
 	{
 		if (!RootNode->IsContainedObject(TreeTargetObject)) return nullptr;
 		else
 		{
-			for (QuadTreeNode* ChildNode:SearchNode->Children)
+			for (TSharedPtr<QuadTreeNode> ChildNode:SearchNode->Children)
 			{
 				if (ChildNode->IsContainedObject(TreeTargetObject))
 				{

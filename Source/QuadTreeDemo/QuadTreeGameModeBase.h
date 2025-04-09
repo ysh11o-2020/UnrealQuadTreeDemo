@@ -29,15 +29,19 @@ public:
 	UPROPERTY(EditAnywhere)
 	FBox2D BoundingBox = FBox2D(FVector2D(-10000,-10000),FVector2D(10000,10000));
 	
-	QuadTreeNode* GetRootNode() const;
-
-	QuadTreeNode* RootNode = nullptr;
+	TSharedPtr<QuadTreeNode> RootNode = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<AQuadTreeTargetObject*> TargetObjects;
 
 	void CreateQuadTree();
+
+	UFUNCTION()
 	void UpdateQuadTree();
 	
-	QuadTreeNode* GetContainerQuadTreeNode(AQuadTreeTargetObject* TreeTargetObject) const;
+	TSharedPtr<QuadTreeNode> GetContainerQuadTreeNode(const AQuadTreeTargetObject* TreeTargetObject) const;
+
+	UPROPERTY()
+	FTimerHandle TimerHandle_UpdateQuadTree;
+	
 };

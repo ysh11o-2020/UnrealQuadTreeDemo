@@ -47,10 +47,10 @@ void QuadTreeNode::InsertObject(AQuadTreeTargetObject* InObject)
 		if (bIsLeaf)
 		{
 			bIsLeaf = false;
-			QuadTreeNode* TLChildNode = new QuadTreeNode(FVector2D(Position.X-Size.X/4,Position.Y+Size.Y/4), Size/2);
-			QuadTreeNode* TRChildNode = new QuadTreeNode(FVector2D(Position.X+Size.X/4,Position.Y+Size.Y/4), Size/2);
-			QuadTreeNode* BLChildNode = new QuadTreeNode(FVector2D(Position.X-Size.X/4,Position.Y-Size.Y/4), Size/2);
-			QuadTreeNode* BRChildNode = new QuadTreeNode(FVector2D(Position.X+Size.X/4,Position.Y-Size.Y/4), Size/2);
+			TSharedPtr<QuadTreeNode> TLChildNode = MakeShared<QuadTreeNode>(FVector2D(Position.X-Size.X/4,Position.Y+Size.Y/4), Size/2);
+			TSharedPtr<QuadTreeNode> TRChildNode = MakeShared<QuadTreeNode>(FVector2D(Position.X+Size.X/4,Position.Y+Size.Y/4), Size/2);
+			TSharedPtr<QuadTreeNode> BLChildNode = MakeShared<QuadTreeNode>(FVector2D(Position.X-Size.X/4,Position.Y-Size.Y/4), Size/2);
+			TSharedPtr<QuadTreeNode> BRChildNode = MakeShared<QuadTreeNode>(FVector2D(Position.X+Size.X/4,Position.Y-Size.Y/4), Size/2);
 
 			Children.Add(TLChildNode);
 			Children.Add(TRChildNode);
@@ -67,7 +67,7 @@ void QuadTreeNode::InsertObject(AQuadTreeTargetObject* InObject)
 		}
 		else
 		{
-			for (QuadTreeNode* ChildNode: Children)
+			for (TSharedPtr<QuadTreeNode> ChildNode: Children)
 			{
 				if (ChildNode->IsContainedObject(InObject)) ChildNode->InsertObject(InObject);
 			}
@@ -79,12 +79,12 @@ void QuadTreeNode::InsertObject(AQuadTreeTargetObject* InObject)
 	}
 }
 
-void QuadTreeNode::DrawBoundingBox(const UObject* WorldContextObject, const FColor DrawColor) const
+void QuadTreeNode::DrawBoundingBox(const UObject* WorldContextObject, const FColor DrawColor,
+	const float DrawTime) const
 {
 	if (WorldContextObject == nullptr) return;
 	
 	float DrawHeight = 55.0f;
-	float DrawTime = 555/*/UKismetSystemLibrary::GetFrameCount()*/;
 	
 	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y-Size.Y/2,DrawHeight),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,false,DrawTime,0,5);
 	DrawDebugLine(WorldContextObject->GetWorld(),FVector(Position.X-Size.X/2,Position.Y+Size.Y/2,DrawHeight),FVector(Position.X+Size.X/2,Position.Y+Size.Y/2,DrawHeight),DrawColor,false,DrawTime,0,5);
@@ -96,19 +96,20 @@ void QuadTreeNode::DrawBoundingBox(const UObject* WorldContextObject, const FCol
 
 }
 
-void QuadTreeNode::DrawSelfAndChildrenBBox(const UObject* WorldContextObject) const
+void QuadTreeNode::DrawSelfAndChildrenBBox(const UObject* WorldContextObject, const FColor DrawColor,
+	const float DrawTime) const
 {
 	if (WorldContextObject == nullptr) return;
 	if (bIsLeaf)
 	{
-		DrawBoundingBox(WorldContextObject);
+		DrawBoundingBox(WorldContextObject,DrawColor,DrawTime);
 		return;
 	}
 	else
 	{
-		for (QuadTreeNode* ChildNode : Children)
+		for (TSharedPtr<QuadTreeNode> ChildNode : Children)
 		{
-			ChildNode->DrawSelfAndChildrenBBox(WorldContextObject);
+			ChildNode->DrawSelfAndChildrenBBox(WorldContextObject,DrawColor,DrawTime);
 		}
 	}
 }

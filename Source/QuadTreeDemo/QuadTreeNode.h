@@ -22,7 +22,7 @@ public:
 	int32 MaxContainNumber;
 	TArray<AQuadTreeTargetObject*> ContainObjects;
 	
-	TArray<QuadTreeNode*> Children;
+	TArray<TSharedPtr<QuadTreeNode>> Children;
 
 	bool bIsLeaf = true;
 	bool bIsRoot;
@@ -33,9 +33,9 @@ public:
 
 	void InsertObject(AQuadTreeTargetObject* InObject);
 	
-	void DrawBoundingBox(const UObject* WorldContextObject,const FColor DrawColor = FColor::Green) const;
+	void DrawBoundingBox(const UObject* WorldContextObject,const FColor DrawColor = FColor::Green, const float DrawTime = 50.0f) const;
 
-	void DrawSelfAndChildrenBBox(const UObject* WorldContextObject) const;
+	void DrawSelfAndChildrenBBox(const UObject* WorldContextObject,const FColor DrawColor = FColor::Green, const float DrawTime = 50.0f) const;
 	
 	//是否与圆形区域相交(AABB算法)
 	bool IsCircleInterSection(const FVector& CircleCenter, float Radius) const;
